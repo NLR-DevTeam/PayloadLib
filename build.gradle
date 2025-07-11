@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'maven-publish'
     id 'xyz.jpenilla.run-paper' version '2.3.1'
 }
 
@@ -58,5 +59,16 @@ processResources {
     filteringCharset 'UTF-8'
     filesMatching('plugin.yml') {
         expand props
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            // add all the jars that should be included when publishing to maven
+            //artifact(jar)             { builtBy remapJar }
+            artifactId = "payloadlib"
+            from components.java
+        }
     }
 }
