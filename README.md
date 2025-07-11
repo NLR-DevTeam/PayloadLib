@@ -1,0 +1,203 @@
+# PayloadLib
+
+Easier approach for Bukkit to send & handle custom payloads, simple & powerful.
+
+We support a wide range of types, please see [[Supported Data Types]](#supported-data-types).
+
+## Importing
+
+> [!WARNING]
+> PayloadLib hasn't been published to maven central yet since it's unstable.
+
+Please add this in your build.gradle (remember to replace `<VERSION>` with the latest release):
+
+```groovy
+dependencies {
+    // ...
+    implementation 'top.nlrdev:payloadlib:<VERSION>'
+}
+```
+
+Including this plugin in other plugins' JARs is not recommended, since it could cause numerous issues.
+
+## Usage
+
+First, add `PayloadLib` in the `plugin.yml` as an dependency.
+
+Then, declare your payload like this:
+
+```java
+import top.nlrdev.payloadlib.Payload;
+import top.nlrdev.payloadlib.types.Identifier;
+
+public record MyPayload(int id, String data) implements Payload {
+    public static final Identifier ID = Identifier.of("namespace", "path");
+    // Or: public static final Identifier ID = Identifier.parse("namespace:path");
+
+    @Override
+    public Identifier getId() {
+        return ID;
+    }
+}
+```
+
+Next, register your packets:
+
+```java
+import top.nlrdev.payloadlib.PayloadLib;
+
+// In your JavaPlugin implementation
+@Override
+public void onEnable() {
+    // ...
+    PayloadLib.registerPayload(MyPayload.ID, MyPayload.class);
+}
+```
+
+If this is a C2S (Serverbound) payload, you can register a handler like this:
+
+```java
+PayloadLib.<MyPayload>registerGlobalReceiver(MyPayload.ID, (/* Bukkit Player */ sender, /* MyPayload */ payload) -> {
+    sender.sendMessage("ID: %s, Data: %s".formatted(payload.id(), payload.data()));
+});
+```
+
+Else, if this is a S2C (Clientbound) payload, you can send it in two methods:
+
+```java
+Payload payload = new MyPayload(1234, "some-data");
+payload.sendTo(player1, player2, player3, ...);
+
+// Or
+PayloadLib.sendPayload(payload, player1, player2, player3, ...);
+```
+
+## Supported Data Types
+
+> [!NOTE]
+> We do only support types that have their `PacketCodec`s.
+
+Please refer to [SerializationImpl.java](/src/main/java/top/nlrdev/payloadlib/serialization/SerializationImpl.java) for more details.
+
+### Primitive
+
+| Primitive | Packaged  | Array         | Unsigned Implementation                     |
+| --------- | --------- | ------------- | ------------------------------------------- |
+| boolean   | Boolean   | _Unsupported_ | _None_                                      |
+| byte      | Byte      | byte[]        | _None_                                      |
+| short     | Short     | _Unsupported_ | `top.nlrdev.payloadlib.types.UnsignedShort` |
+| char      | Character | _Unsupported_ | _None_                                      |
+| int       | Integer   | _Unsupported_ | _None_                                      |
+| long      | Long      | _Unsupported_ | _None_                                      |
+| float     | Float     | _Unsupported_ | _None_                                      |
+| double    | Double    | _Unsupported_ | _None_                                      |
+
+### Non-Primitive
+
+| Type                   | PayloadLib  |
+| ---------------------- | ----------- |
+| String                 | _Unchanged_ |
+| UUID                   | _Unchanged_ |
+| `org.joml.Vector3f`    | _Unchanged_ |
+| `org.joml.Quaternionf` | _Unchanged_ |
+
+| Minecraft (Official)            | Minecraft (Yarn)                   | PayloadLib                             |
+| ------------------------------- | ---------------------------------- | -------------------------------------- |
+| `ByteBufCodecs#VAR_INT`         | `PacketCodecs#VAR_INT`             | `top.nlrdev.payloadlib.types.VarInt`   |
+| `ByteBufCodecs#VAR_LONG`        | `PacketCodecs#VAR_LONG`            | `top.nlrdev.payloadlib.types.VarLong`  |
+| `net.minecraft.world.phys.Vec3` | `net.minecraft.util.math.Vec3d`    | `org.joml.Vector3d`                    |
+| `net.minecraft.core.BlockPos`   | `net.minecraft.util.math.BlockPos` | `top.nlrdev.payloadlib.types.BlockPos` |
+
+## Advanced Usage
+
+### Handling ByteBuf Directly
+
+There's a high-level API called `registerRawReceiver`, here's its usage:
+
+```java
+import top.nlrdev.payloadlib.encoding.StringEncoding;
+
+PayloadLib.registerRawReceiver(MyPayload.ID, (/* Bukkit Player */ sender, /* ByteBuf */ buf) -> {
+    int id = buf.readInt();
+    String data = StringEncoding.decode(buf, /* Max Length */ 65535);
+
+    sender.sendMessage("ID: %s, Data: %s".formatted(id, data));
+});
+```
+
+### Declaring Custom (De)Serializer
+
+> [!WARNING]
+> This is a dangerous operation, if your requirement is quite simple, please refer to [Registering Custom Data Type](#registering-custom-data-type).
+
+You need to use annotations to implement custom serializer / deserialzer, here's an example.
+
+The type is a Bukkit Player, and we will use its UUID for serialization.
+
+```java
+import io.netty.Buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import top.nlrdev.payloadlib.Payload;
+import top.nlrdev.payloadlib.types.Identifier;
+import top.nlrdev.payloadlib.serialization.PayloadSerializer;
+import top.nlrdev.payloadlib.serialization.PayloadDeserializer;
+import top.nlrdev.payloadlib.serialization.SerializationImpl;
+
+import java.util.UUID;
+
+public record MyPayloadTwo(Player player) implements Payload {
+    public static final Identifier ID = Identifier.of("namespace", "path");
+
+    @Override
+    public Identifier getId() {
+        return ID;
+    }
+
+    @PayloadSerializer
+    public static ByteBuf serialize(MyPayloadTwo instance) {
+        ByteBuf buf = Unpooled.buffer();
+        SerializationImpl.getInternalSerializer(UUID.class).accept(buf, instance.player.getUniqueId());
+        return buf;
+    }
+
+    @PayloadDeserializer
+    public static MyPayloadTwo deserialize(ByteBuf buf) {
+        UUID uuid = SerializationImpl.getInternalDeserializer(UUID.class).apply(buf);
+        Player player = Bukkit.getPlayer(uuid);
+        assert player != null;
+
+        return new MyPayloadTwo(player);
+    }
+}
+```
+
+### Registering Custom Data Type
+
+Overwriting (de)serializer is kind of dangerous, and registering custom data type is more convenient. Here's an instance:
+
+```java
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import top.nlrdev.payloadlib.serialization.SerializationImpl;
+
+SerializationImpl.registerType(
+    Player.class,
+    /* Serializer */ (/* ByteBuf */ buf, /* Player (T) */ player) -> SerializationImpl.getInternalSerializer(UUID.class).accept(buf, player.getUniqueId()),
+    /* Deserializer */ (/* ByteBuf */ buf) -> {
+        UUID uuid = SerializationImpl.getInternalDeserializer(UUID.class).apply(buf);
+        return Bukkit.getPlayer(uuid);
+    }
+);
+```
+
+## Contributing
+
+Your contributions will be highly appreciated! We're looking forward to them.
+
+Please feel free to open an Issue or a Pull Request.
+
+## License
+
+This mod is licensed under [MIT License](/LICENSE).

@@ -1,0 +1,8 @@
+name: PayloadLib
+version: "0.0.1-SNAPSHOT"
+main: top.nlrdev.payloadlib.internal.PluginInitializer
+api-version: "1.21"
+load: STARTUP
+authors: [XIAYM-gh]
+description: Easier approach to send & handle custom payloads.
+website: https://github.com/NLR-DevTeam/PayloadLib
