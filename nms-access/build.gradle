@@ -1,0 +1,63 @@
+plugins {
+    id 'io.papermc.paperweight.userdev'
+    id 'xyz.jpenilla.run-paper'
+}
+
+repositories {
+    mavenCentral()
+
+    maven {
+        name = 'papermc-repo'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+
+    maven {
+        name = 'sonatype'
+        url = 'https://oss.sonatype.org/content/groups/public/'
+    }
+}
+
+gradle.taskGraph.whenReady { TaskExecutionGraph graph ->
+    def fullBuild = graph.allTasks.collect { it.name }.contains("runServer")
+
+    if (fullBuild) {
+        tasks {
+            jar {
+                from(zipTree(project(':core').tasks.jar.archiveFile.get().asFile))
+            }
+        }
+    }
+}
+
+dependencies {
+    paperweight.paperDevBundle("${project.minecraft_version}-R0.1-SNAPSHOT")
+    implementation project(':core')
+}
+
+def targetJavaVersion = Integer.parseInt(project.java_version)
+java {
+    def javaVersion = JavaVersion.toVersion(targetJavaVersion)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
+    if (JavaVersion.current() < javaVersion) {
+        toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+
+    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
+        options.release.set(targetJavaVersion)
+    }
+}
+
+tasks {
+    runServer {
+        minecraftVersion(project.minecraft_version)
+    }
+
+    jar {
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+}

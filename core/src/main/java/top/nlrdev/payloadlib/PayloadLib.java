@@ -2,6 +2,7 @@ package top.nlrdev.payloadlib;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -10,12 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import top.nlrdev.payloadlib.internal.PayloadBinding;
 import top.nlrdev.payloadlib.internal.PluginInitializer;
+import top.nlrdev.payloadlib.internal.nms.NMSBindings;
 import top.nlrdev.payloadlib.receivers.PayloadGlobalReceiver;
 import top.nlrdev.payloadlib.receivers.PayloadRawReceiver;
 import top.nlrdev.payloadlib.serialization.SerializationImpl;
 import top.nlrdev.payloadlib.types.Identifier;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class PayloadLib {
@@ -23,7 +24,6 @@ public class PayloadLib {
     private static final HashMap<Identifier, PayloadBinding> PAYLOAD_BINDINGS = new HashMap<>();
     private static final Multimap<Identifier, PayloadGlobalReceiver<?>> PAYLOAD_GLOBAL_RECEIVERS = HashMultimap.create();
     private static final Multimap<Identifier, PayloadRawReceiver> PAYLOAD_RAW_RECEIVERS = HashMultimap.create();
-    private static final ArrayList<Identifier> OUTGOING_CHANNELS = new ArrayList<>();
 
     public static void registerPayload(@NotNull Identifier id, @NotNull Class<? extends Payload> payloadType) {
         if (PAYLOAD_BINDINGS.containsKey(id)) {
@@ -71,15 +71,11 @@ public class PayloadLib {
     }
 
     public static void sendPayload(@NotNull Payload payload, @NotNull Player... players) {
-        Identifier id = payload.getId();
-        if (!OUTGOING_CHANNELS.contains(id)) {
-            MESSENGER.registerOutgoingPluginChannel(PluginInitializer.getInstance(), id.toString());
-            OUTGOING_CHANNELS.add(id);
-        }
+        ByteBuf serialized = SerializationImpl.serialize(payload);
+        byte[] data = serialized.slice(0, serialized.readableBytes()).array();
 
-        byte[] data = SerializationImpl.serialize(payload).array();
         for (Player player : players) {
-            player.sendPluginMessage(PluginInitializer.getInstance(), id.toString(), data);
+            NMSBindings.get().sendPayload(player, payload.getId(), data);
         }
     }
 }

@@ -1,8 +1,11 @@
 # PayloadLib
 
-Easier approach for Bukkit to send & handle custom payloads, simple & powerful.
+Easier approach for **Paper** to send & handle custom payloads, simple & powerful.
 
 We support a wide range of types, please see [[Supported Data Types]](#supported-data-types).
+
+> [!NOTE]
+> CraftBukkit and Spigot are not supported, and this plugin is likely to crash when running on them.
 
 ## Importing
 
@@ -20,9 +23,30 @@ dependencies {
 
 Including this plugin in other plugins' JARs is not recommended, since it could cause numerous issues.
 
+## Supported Versions
+
+Bukkit's API has an annoying limit, so we use NMS to send payloads directly.
+
+Please notice that we do only support recent versions of Minecraft (excluding some versions that nobody cares).
+
+| NMS Target | Compatible With            |
+| ---------- | -------------------------- |
+| 1.21.4     | 1.21.4, _1.21.5_, _1.21.7_ |
+| 1.21.1     | _1.21_, 1.21.1             |
+| 1.20.6     | _1.20.5_, 1.20.6           |
+| 1.20.4     | _1.20.3_, 1.20.4           |
+| 1.20.1     | _1.20_, 1.20.1             |
+
+Note: _Italic_ means the version is **not fully tested**, but **may** be usable.
+
 ## Usage
 
 First, add `PayloadLib` in the `plugin.yml` as an dependency.
+
+```yml
+# ...
+depends: [PayloadLib]
+```
 
 Then, declare your payload like this:
 
@@ -77,7 +101,7 @@ PayloadLib.sendPayload(payload, player1, player2, player3, ...);
 > [!NOTE]
 > We do only support types that have their `PacketCodec`s.
 
-Please refer to [SerializationImpl.java](/src/main/java/top/nlrdev/payloadlib/serialization/SerializationImpl.java) for more details.
+Please refer to [SerializationImpl.java](/core/src/main/java/top/nlrdev/payloadlib/serialization/SerializationImpl.java) for more details.
 
 ### Primitive
 
@@ -191,6 +215,18 @@ SerializationImpl.registerType(
     }
 );
 ```
+
+## Building
+
+Thanks to paper-userdev, building this plugin will cost a lot of RAM. You need about `8 GiB` of free RAM to complete the whole compiling process.
+
+To build, run:
+
+```shell
+./gradlew build --no-daemon
+```
+
+And you'll see the plugin JAR inside the folder `build/libs`.
 
 ## Contributing
 
