@@ -2,7 +2,9 @@
 
 Easier approach for **Paper** servers to send & handle custom payloads, simple & powerful.
 
-We support a wide range of types, please see [[Supported Data Types]](#supported-data-types).
+We support a wide range of types, please see [Supported Data Types](#supported-data-types).
+
+| [Supported Versions](#supported-versions) | [Basic Usage](#usage) | [Advanced Usage](#advanced-usage) | [Examples](#examples) |
 
 > [!WARNING]
 > CraftBukkit and Spigot servers are not supported, and this plugin is likely to crash when running on them.
@@ -24,7 +26,7 @@ repositories {
 
 dependencies {
     implementation 'top.nlrdev:payloadlib:0.0.1-SNAPSHOT'
-    
+
     // Optional dependency, providing ByteBuf
     implementation 'io.netty:netty-buffer:4.2.2.Final'
 }
@@ -253,6 +255,12 @@ To build, run:
 ```
 
 And you'll see the plugin JAR inside the folder `build/libs`.
+
+## Examples
+
+You can refer to these live examples to get inspiration:
+
+- [XIAYM-gh/SittingPlus-uwu-Bukkit](https://github.com/XIAYM-gh/SittingPlus-uwu-Bukkit)
 
 ## Contributing
 
