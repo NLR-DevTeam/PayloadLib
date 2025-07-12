@@ -7,13 +7,13 @@ repositories {
     mavenCentral()
 
     maven {
-        name = 'papermc-repo'
-        url = 'https://repo.papermc.io/repository/maven-public/'
+        name 'papermc-repo'
+        url 'https://repo.papermc.io/repository/maven-public/'
     }
 
     maven {
-        name = 'sonatype'
-        url = 'https://oss.sonatype.org/content/groups/public/'
+        name 'sonatype'
+        url 'https://oss.sonatype.org/content/groups/public/'
     }
 }
 
@@ -39,9 +39,12 @@ java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
+
     if (JavaVersion.current() < javaVersion) {
         toolchain.languageVersion = JavaLanguageVersion.of(targetJavaVersion)
     }
+
+    withSourcesJar()
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -58,6 +61,11 @@ tasks {
     }
 
     jar {
+        dependsOn(sourcesJar)
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    }
+
+    sourcesJar {
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 }

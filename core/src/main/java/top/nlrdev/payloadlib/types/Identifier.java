@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  * <ul>
  *     <li>Mojang: <code>net.minecraft.resources.ResourceLocation</code></li>
  *     <li>Yarn: <code>net.minecraft.util.Identifier</code></li>
- * <ul/>
+ * </ul>
  */
 public class Identifier {
     private static final Pattern NAMESPACE_PATTERN = Pattern.compile("^[a-z0-9_.-]+$");

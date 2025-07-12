@@ -1,7 +1,6 @@
 plugins {
-    id 'base'
     id 'java'
-    id 'maven-publish'
+    id 'com.vanniktech.maven.publish' version '0.33.0'
     id 'io.papermc.paperweight.userdev' version '2.0.0-beta.17' apply false
     id 'xyz.jpenilla.run-paper' version '2.3.1' apply false
 }
@@ -11,25 +10,83 @@ version = '0.0.1-SNAPSHOT'
 
 subprojects {
     apply plugin: 'java'
+    group = rootProject.group
+    version = rootProject.version
+
+    rootProject.evaluationDependsOn(":$it.name")
 }
 
-tasks {
-    jar {
-        dependsOn(subprojects.tasks.jar)
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        subprojects.forEach {
-            from(zipTree(it.tasks.jar.archiveFile.get().asFile))
-        }
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+['jar', 'sourcesJar'].collect { tasks.named(it).get() }.forEach { Task task ->
+    def subTasks = subprojects.collect { it.tasks.named(task.name).get() }
+    task.dependsOn(subTasks)
+    subTasks.forEach {
+        task.from(zipTree(it.archiveFile.get().asFile))
     }
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            // add all the jars that should be included when publishing to maven
-            //artifact(jar)             { builtBy remapJar }
-            artifactId = "payloadlib"
-            from components.java
+// Only include core's docs
+javadoc {
+    def core = project(':core')
+    source core.sourceSets.main.java.srcDirs
+    classpath = files(core.sourceSets.main.compileClasspath)
+
+    options.addStringOption('Xdoclint:-missing', '-quiet')
+}
+
+gradle.taskGraph.whenReady { TaskExecutionGraph graph ->
+    def isPublish = graph.allTasks.collect { it.name }.stream().anyMatch { it.toLowerCase().contains("publish") }
+
+    if (!isPublish) {
+        sourcesJar.enabled = false
+        javadoc.enabled = false
+    }
+}
+
+afterEvaluate {
+    plainJavadocJar {
+        enabled = false
+    }
+}
+
+mavenPublishing {
+    publishToMavenCentral()
+
+    if (System.hasProperty('signing.keyId')) {
+        signAllPublications()
+    }
+
+    coordinates(rootProject.group as String, 'payloadlib', rootProject.version as String)
+
+    pom {
+        name = rootProject.name
+        description = 'Easier approach for Paper servers to send & handle custom payloads, simple & powerful.'
+        url = 'https://github.com/NLR-DevTeam/PayloadLib'
+
+        licenses {
+            license {
+                name = 'The MIT License'
+                url = 'https://mit-license.org/'
+            }
+        }
+
+        developers {
+            developer {
+                id = 'xiaym'
+                name = 'XIAYM-gh'
+                email = 'xiaym123@qq.com'
+                url = 'https://github.com/XIAYM-gh'
+            }
+        }
+
+        scm {
+            url = 'https://github.com/NLR-DevTeam/PayloadLib'
+            connection = 'scm:git:git://github.com/NLR-DevTeam/PayloadLib.git'
+            developerConnection = 'scm:git:ssh://github.com:NLR-DevTeam/PayloadLib.git'
         }
     }
 }

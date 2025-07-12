@@ -2,9 +2,12 @@ package top.nlrdev.payloadlib.types;
 
 import org.joml.Vector3i;
 
+/**
+ * BlockPos parser extracted from Minecraft.
+ */
 @SuppressWarnings("ExternalizableWithoutPublicNoArgConstructor")
 public class BlockPos extends Vector3i {
-    public static final int SIZE_BITS_XZ = 26; // 1 + MathHelper.floorLog2(MathHelper.smallestEncompassingPowerOfTwo(30000000))
+    public static final int SIZE_BITS_XZ = 26; // Pre-evaluated: 1 + MathHelper.floorLog2(MathHelper.smallestEncompassingPowerOfTwo(30000000))
     public static final int SIZE_BITS_Y = 64 - 2 * SIZE_BITS_XZ;
     private static final long BITS_Y = (1L << SIZE_BITS_Y) - 1L;
     private static final int BIT_SHIFT_Z = SIZE_BITS_Y;

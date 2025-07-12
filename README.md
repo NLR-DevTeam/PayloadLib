@@ -4,15 +4,31 @@ Easier approach for **Paper** servers to send & handle custom payloads, simple &
 
 We support a wide range of types, please see [[Supported Data Types]](#supported-data-types).
 
-> [!NOTE]
+> [!WARNING]
 > CraftBukkit and Spigot servers are not supported, and this plugin is likely to crash when running on them.
 
 ## Importing
 
-> [!WARNING]
-> PayloadLib hasn't been published to maven central yet since it's unstable.
+> [!NOTE]
+> PayloadLib hasn't been published to the maven central yet, but you can use the snapshot repository.
 
-Please add this in your build.gradle (remember to replace `<VERSION>` with the latest release):
+To access the snapshot version of PayloadLib, please add this in your `build.gradle`.
+
+```groovy
+repositories {
+  maven {
+    name = 'Central Portal Snapshots'
+    url = 'https://central.sonatype.com/repository/maven-snapshots/'
+  }
+}
+
+dependencies {
+    implementation 'top.nlrdev:payloadlib:0.0.1-SNAPSHOT'
+}
+```
+
+<!--
+Please add this in your `build.gradle` (remember to replace `<VERSION>` with the latest release):
 
 ```groovy
 dependencies {
@@ -20,6 +36,7 @@ dependencies {
     implementation 'top.nlrdev:payloadlib:<VERSION>'
 }
 ```
+-->
 
 Embedding this plugin within other plugin JARs is not recommended, as it can lead to various issues.
 
@@ -128,12 +145,13 @@ Please refer to [SerializationImpl.java](/core/src/main/java/top/nlrdev/payloadl
 | `org.joml.Vector3f`    | _Unchanged_ |
 | `org.joml.Quaternionf` | _Unchanged_ |
 
-| Minecraft (Official)            | Minecraft (Yarn)                   | PayloadLib                             |
-| ------------------------------- | ---------------------------------- | -------------------------------------- |
-| `ByteBufCodecs#VAR_INT`         | `PacketCodecs#VAR_INT`             | `top.nlrdev.payloadlib.types.VarInt`   |
-| `ByteBufCodecs#VAR_LONG`        | `PacketCodecs#VAR_LONG`            | `top.nlrdev.payloadlib.types.VarLong`  |
-| `net.minecraft.world.phys.Vec3` | `net.minecraft.util.math.Vec3d`    | `org.joml.Vector3d`                    |
-| `net.minecraft.core.BlockPos`   | `net.minecraft.util.math.BlockPos` | `top.nlrdev.payloadlib.types.BlockPos` |
+| Minecraft (Official)                       | Minecraft (Yarn)                   | PayloadLib                               |
+| ------------------------------------------ | ---------------------------------- | ---------------------------------------- |
+| `net.minecraft.resources.ResourceLocation` | `net.minecraft.util.Identifier`    | `top.nlrdev.payloadlib.types.Identifier` |
+| `ByteBufCodecs#VAR_INT`                    | `PacketCodecs#VAR_INT`             | `top.nlrdev.payloadlib.types.VarInt`     |
+| `ByteBufCodecs#VAR_LONG`                   | `PacketCodecs#VAR_LONG`            | `top.nlrdev.payloadlib.types.VarLong`    |
+| `net.minecraft.world.phys.Vec3`            | `net.minecraft.util.math.Vec3d`    | `org.joml.Vector3d`                      |
+| `net.minecraft.core.BlockPos`              | `net.minecraft.util.math.BlockPos` | `top.nlrdev.payloadlib.types.BlockPos`   |
 
 ## Advanced Usage
 

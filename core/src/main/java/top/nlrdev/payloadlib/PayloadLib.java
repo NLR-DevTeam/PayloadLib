@@ -19,6 +19,9 @@ import top.nlrdev.payloadlib.types.Identifier;
 
 import java.util.HashMap;
 
+/**
+ * The most used utility class, which allows you to register, listen and send a payload.
+ */
 public class PayloadLib {
     private static final Messenger MESSENGER = Bukkit.getMessenger();
     private static final HashMap<Identifier, PayloadBinding> PAYLOAD_BINDINGS = new HashMap<>();
