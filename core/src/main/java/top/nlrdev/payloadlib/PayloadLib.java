@@ -75,7 +75,8 @@ public class PayloadLib {
 
     public static void sendPayload(@NotNull Payload payload, @NotNull Player... players) {
         ByteBuf serialized = SerializationImpl.serialize(payload);
-        byte[] data = serialized.slice(0, serialized.readableBytes()).array();
+        byte[] data = new byte[serialized.readableBytes()];
+        serialized.readBytes(data);
 
         for (Player player : players) {
             NMSBindings.get().sendPayload(player, payload.getId(), data);
