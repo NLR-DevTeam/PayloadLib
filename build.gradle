@@ -88,5 +88,16 @@ mavenPublishing {
             connection = 'scm:git:git://github.com/NLR-DevTeam/PayloadLib.git'
             developerConnection = 'scm:git:ssh://github.com:NLR-DevTeam/PayloadLib.git'
         }
+
+        // Append 'implementation' dependencies
+        withXml {
+            def node = asNode().appendNode('dependencies')
+            project(':core').configurations.implementation.allDependencies.withType(ModuleDependency).forEach {
+                def depNode = node.appendNode('dependency')
+                depNode.appendNode('groupId', it.group)
+                depNode.appendNode('artifactId', it.name)
+                depNode.appendNode('version', it.version)
+            }
+        }
     }
 }
