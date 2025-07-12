@@ -1,11 +1,11 @@
 # PayloadLib
 
-Easier approach for **Paper** to send & handle custom payloads, simple & powerful.
+Easier approach for **Paper** servers to send & handle custom payloads, simple & powerful.
 
 We support a wide range of types, please see [[Supported Data Types]](#supported-data-types).
 
 > [!NOTE]
-> CraftBukkit and Spigot are not supported, and this plugin is likely to crash when running on them.
+> CraftBukkit and Spigot servers are not supported, and this plugin is likely to crash when running on them.
 
 ## Importing
 
@@ -21,7 +21,7 @@ dependencies {
 }
 ```
 
-Including this plugin in other plugins' JARs is not recommended, since it could cause numerous issues.
+Embedding this plugin within other plugin JARs is not recommended, as it can lead to various issues.
 
 ## Supported Versions
 
@@ -41,11 +41,11 @@ Note: _Italic_ means the version is **not fully tested**, but **may** be usable.
 
 ## Usage
 
-First, add `PayloadLib` in the `plugin.yml` as an dependency.
+First, add `PayloadLib` in the `plugin.yml` as an dependency:
 
 ```yml
 # ...
-depends: [PayloadLib]
+depend: [PayloadLib]
 ```
 
 Then, declare your payload like this:
@@ -65,7 +65,10 @@ public record MyPayload(int id, String data) implements Payload {
 }
 ```
 
-Next, register your packets:
+Next, register your packets as follows:
+
+> [!NOTE]
+> Both C2S (Serverbound) and S2C (Clientbound) payloads must be registered for serialization.
 
 ```java
 import top.nlrdev.payloadlib.PayloadLib;
@@ -99,7 +102,7 @@ PayloadLib.sendPayload(payload, player1, player2, player3, ...);
 ## Supported Data Types
 
 > [!NOTE]
-> We do only support types that have their `PacketCodec`s.
+> We only support types with a `PacketCodec` in vanilla Minecraft.
 
 Please refer to [SerializationImpl.java](/core/src/main/java/top/nlrdev/payloadlib/serialization/SerializationImpl.java) for more details.
 
@@ -199,17 +202,19 @@ public record MyPayloadTwo(Player player) implements Payload {
 
 ### Registering Custom Data Type
 
-Overwriting (de)serializer is kind of dangerous, and registering custom data type is more convenient. Here's an instance:
+Overwriting the (de)serializer is dangerous, and registering custom data type is more convenient. Here's an instance:
 
 ```java
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import top.nlrdev.payloadlib.serialization.SerializationImpl;
 
+import java.util.UUID;
+
 SerializationImpl.registerType(
     Player.class,
-    /* Serializer */ (/* ByteBuf */ buf, /* Player (T) */ player) -> SerializationImpl.getInternalSerializer(UUID.class).accept(buf, player.getUniqueId()),
-    /* Deserializer */ (/* ByteBuf */ buf) -> {
+    /* Serializer */ (/* ByteBuf */ buf, player) -> SerializationImpl.getInternalSerializer(UUID.class).accept(buf, player.getUniqueId()),
+    /* Deserializer */ buf -> {
         UUID uuid = SerializationImpl.getInternalDeserializer(UUID.class).apply(buf);
         return Bukkit.getPlayer(uuid);
     }
@@ -218,7 +223,7 @@ SerializationImpl.registerType(
 
 ## Building
 
-Thanks to paper-userdev, building this plugin will cost a lot of RAM. You need about `8 GiB` of free RAM to complete the whole compiling process.
+Thanks to paperweight-userdev, building this plugin will cost a lot of RAM. You need about `8 GiB` of free RAM to complete the whole compiling process.
 
 To build, run:
 
@@ -230,7 +235,7 @@ And you'll see the plugin JAR inside the folder `build/libs`.
 
 ## Contributing
 
-Your contributions will be highly appreciated! We're looking forward to them.
+We welcome your contributions!
 
 Please feel free to open an Issue or a Pull Request.
 
