@@ -12,7 +12,7 @@ We support a wide range of types, please see [[Supported Data Types]](#supported
 > [!NOTE]
 > PayloadLib hasn't been published to the maven central yet, but you can use the snapshot repository.
 
-To access the snapshot version of PayloadLib, please add this in your `build.gradle`.
+To access the snapshot version of PayloadLib, please add this in your `build.gradle`:
 
 ```groovy
 repositories {
@@ -24,6 +24,9 @@ repositories {
 
 dependencies {
     implementation 'top.nlrdev:payloadlib:0.0.1-SNAPSHOT'
+    
+    // Optional dependency, providing ByteBuf
+    implementation 'io.netty:netty-buffer:4.2.2.Final'
 }
 ```
 
