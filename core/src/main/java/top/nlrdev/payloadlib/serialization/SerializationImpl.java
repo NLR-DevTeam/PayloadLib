@@ -2,6 +2,7 @@ package top.nlrdev.payloadlib.serialization;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
@@ -9,8 +10,7 @@ import org.joml.Vector3d;
 import org.joml.Vector3f;
 import top.nlrdev.payloadlib.Payload;
 import top.nlrdev.payloadlib.PayloadLib;
-import top.nlrdev.payloadlib.encoding.StringEncoding;
-import top.nlrdev.payloadlib.encoding.VarInts;
+import top.nlrdev.payloadlib.serialization.encoding.*;
 import top.nlrdev.payloadlib.exceptions.SerializationException;
 import top.nlrdev.payloadlib.exceptions.UnsupportedTypeException;
 import top.nlrdev.payloadlib.internal.PayloadBinding;
@@ -31,7 +31,7 @@ public class SerializationImpl {
     private static final ArrayList<TypeBinding<?>> TYPE_BINDINGS = new ArrayList<>();
 
     // TODO: Collection, Map, Optional, Nullable, Bit Set, Enum Set, NBT(WTF?), Registry,
-    // TODO: RSA Public Key, GlobalPos, BlockHitResult
+    // TODO: BlockHitResult
     static {
         // Primitive Types
         registerInternal(ByteBuf::writeBoolean, ByteBuf::readBoolean, boolean.class, Boolean.class);
@@ -48,20 +48,23 @@ public class SerializationImpl {
 
         // Byte Array
         registerInternal((buf, o) -> {
-            VarInts.write(buf, o.length);
+            VarIntEncoding.encode(buf, new VarInt(o.length));
             buf.writeBytes(o);
         }, buf -> {
-            byte[] array = new byte[VarInts.read(buf)];
+            byte[] array = new byte[VarIntEncoding.decode(buf).intValue()];
             buf.readBytes(array);
             return array;
         }, byte[].class, Byte[].class);
 
         // Var Int / Long
-        registerInternal(VarInt::write, VarInt::read, VarInt.class);
-        registerInternal(VarLong::write, VarLong::read, VarLong.class);
+        registerInternal(VarIntEncoding::encode, VarIntEncoding::decode, VarInt.class);
+        registerInternal(VarLongEncoding::encode, VarLongEncoding::decode, VarLong.class);
 
         // Non-primitive Types
-        registerInternal((buf, o) -> StringEncoding.encode(buf, o, 65535), buf -> StringEncoding.decode(buf, 63353), String.class);
+        registerInternal((buf, o) -> StringEncoding.encode(buf, o, 32767), buf -> StringEncoding.decode(buf, 32767), String.class);
+        registerInternal(IdentifierEncoding::encode, IdentifierEncoding::decode, Identifier.class);
+        registerInternal(LocationEncoding::encode, LocationEncoding::decode, Location.class);
+
         registerInternal((buf, o) -> buf.writeLong(o.getMostSignificantBits())
                 .writeLong(o.getLeastSignificantBits()), buf -> new UUID(buf.readLong(), buf.readLong()), UUID.class);
         registerInternal((buf, o) -> buf.writeFloat(o.x()).writeFloat(o.y())

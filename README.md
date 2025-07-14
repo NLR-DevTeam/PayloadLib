@@ -25,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'top.nlrdev:payloadlib:0.0.1-SNAPSHOT'
+    implementation 'top.nlrdev:payloadlib:0.0.2-SNAPSHOT'
 
     // Optional dependency, providing ByteBuf
     implementation 'io.netty:netty-buffer:4.2.2.Final'
@@ -150,13 +150,25 @@ Please refer to [SerializationImpl.java](/core/src/main/java/top/nlrdev/payloadl
 | `org.joml.Vector3f`    | _Unchanged_ |
 | `org.joml.Quaternionf` | _Unchanged_ |
 
-| Minecraft (Official)                       | Minecraft (Yarn)                   | PayloadLib                               |
-| ------------------------------------------ | ---------------------------------- | ---------------------------------------- |
-| `net.minecraft.resources.ResourceLocation` | `net.minecraft.util.Identifier`    | `top.nlrdev.payloadlib.types.Identifier` |
-| `ByteBufCodecs#VAR_INT`                    | `PacketCodecs#VAR_INT`             | `top.nlrdev.payloadlib.types.VarInt`     |
-| `ByteBufCodecs#VAR_LONG`                   | `PacketCodecs#VAR_LONG`            | `top.nlrdev.payloadlib.types.VarLong`    |
-| `net.minecraft.world.phys.Vec3`            | `net.minecraft.util.math.Vec3d`    | `org.joml.Vector3d`                      |
-| `net.minecraft.core.BlockPos`              | `net.minecraft.util.math.BlockPos` | `top.nlrdev.payloadlib.types.BlockPos`   |
+| Minecraft (Official)                       | Minecraft (Yarn)                    | PayloadLib                               |
+| ------------------------------------------ | ----------------------------------- | ---------------------------------------- |
+| `net.minecraft.resources.ResourceLocation` | `net.minecraft.util.Identifier`     | `top.nlrdev.payloadlib.types.Identifier` |
+| `ByteBufCodecs#VAR_INT`                    | `PacketCodecs#VAR_INT`              | `top.nlrdev.payloadlib.types.VarInt`     |
+| `ByteBufCodecs#VAR_LONG`                   | `PacketCodecs#VAR_LONG`             | `top.nlrdev.payloadlib.types.VarLong`    |
+| `net.minecraft.world.phys.Vec3`            | `net.minecraft.util.math.Vec3d`     | `org.joml.Vector3d`                      |
+| `net.minecraft.core.BlockPos`              | `net.minecraft.util.math.BlockPos`  | `top.nlrdev.payloadlib.types.BlockPos`   |
+| `net.minecraft.core.GlobalPos`             | `net.minecraft.util.math.GlobalPos` | `org.bukkit.Location`                    |
+
+> [!TIP]
+> Mojang's `RegistryKey<T>` (or `ResourceKey<T>` in official mappings) sends only its value in the registry to the server, which means:
+>
+> - It is impossible to read the registry root
+> - You should use `Identifier` for serialization
+
+> [!NOTE]
+> When the world provided in `GlobalPos` can't be found, the deserializer will simply return `null`.
+>
+> Besides, `GlobalPos` can only save block positions, so there's a precision loss, and the deserialized `yaw`, `pitch` will always be zero.
 
 ## Advanced Usage
 

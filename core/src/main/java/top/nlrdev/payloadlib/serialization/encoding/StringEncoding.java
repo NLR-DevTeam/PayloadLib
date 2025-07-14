@@ -1,16 +1,17 @@
-package top.nlrdev.payloadlib.encoding;
+package top.nlrdev.payloadlib.serialization.encoding;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
+import top.nlrdev.payloadlib.types.VarInt;
 
 import java.nio.charset.StandardCharsets;
 
 /**
  * String encoding utilities extracted from Minecraft, rewritten.
  */
-public class StringEncoding {
+public final class StringEncoding {
     public static String decode(ByteBuf buf, int maxLength) {
-        int encodedByteLength = VarInts.read(buf);
+        int encodedByteLength = VarIntEncoding.decode(buf).intValue();
         if (encodedByteLength < 0) {
             throw new RuntimeException("The received encoded string buffer length is less than zero! Weird string!");
         }
@@ -48,7 +49,7 @@ public class StringEncoding {
                 throw new RuntimeException("String too big (was " + actualByteLength + " bytes encoded, max " + maxAllowedByteLength + ")");
             }
 
-            VarInts.write(buf, actualByteLength);
+            VarIntEncoding.encode(buf, new VarInt(actualByteLength));
             buf.writeBytes(tempBuffer);
         } finally {
             tempBuffer.release();

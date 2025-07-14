@@ -4,6 +4,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_20_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -24,5 +26,11 @@ public class NMSBindingV1_20_4 implements NMSBinding {
                 return identifier;
             }
         }));
+    }
+
+    @Override
+    public Identifier getWorldIdentifier(World world) {
+        ResourceLocation dimensionId = ((CraftWorld) world).getHandle().dimension().location();
+        return Identifier.of(dimensionId.getNamespace(), dimensionId.getPath());
     }
 }
