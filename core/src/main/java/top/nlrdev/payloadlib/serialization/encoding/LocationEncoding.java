@@ -24,17 +24,18 @@ public final class LocationEncoding {
     private static final BiConsumer<ByteBuf, BlockPos> BLOCK_POS_SERIALIZER = Objects.requireNonNull(SerializationImpl.getInternalSerializer(BlockPos.class));
 
     /**
-     * Returns null if the world requested doesn't exist.
+     * Returns null if the requested world doesn't exist.
      */
     @Nullable
     public static Location decode(ByteBuf buf) {
-        initWorlds();
+        initCache();
 
         Identifier registryValue = IDENTIFIER_DESERIALIZER.apply(buf);
         World target = null;
         for (Map.Entry<World, Identifier> entry : WORLD_REGISTRY_CACHE.entrySet()) {
             if (entry.getValue().equals(registryValue)) {
                 target = entry.getKey();
+                break;
             }
         }
 
@@ -47,13 +48,13 @@ public final class LocationEncoding {
     }
 
     public static void encode(ByteBuf buf, Location location) {
-        initWorlds();
+        initCache();
 
         IDENTIFIER_SERIALIZER.accept(buf, WORLD_REGISTRY_CACHE.get(location.getWorld()));
         BLOCK_POS_SERIALIZER.accept(buf, new BlockPos(location.getBlockX(), location.getBlockY(), location.getBlockZ()));
     }
 
-    private static void initWorlds() {
+    private static void initCache() {
         for (World world : Bukkit.getWorlds()) {
             WORLD_REGISTRY_CACHE.computeIfAbsent(world, it -> NMSBindings.get().getWorldIdentifier(it));
         }

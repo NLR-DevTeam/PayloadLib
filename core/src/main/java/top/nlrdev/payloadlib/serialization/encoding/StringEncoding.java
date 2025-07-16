@@ -2,7 +2,6 @@ package top.nlrdev.payloadlib.serialization.encoding;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufUtil;
-import top.nlrdev.payloadlib.types.VarInt;
 
 import java.nio.charset.StandardCharsets;
 
@@ -49,7 +48,7 @@ public final class StringEncoding {
                 throw new RuntimeException("String too big (was " + actualByteLength + " bytes encoded, max " + maxAllowedByteLength + ")");
             }
 
-            VarIntEncoding.encode(buf, new VarInt(actualByteLength));
+            VarIntEncoding.encode(buf, actualByteLength);
             buf.writeBytes(tempBuffer);
         } finally {
             tempBuffer.release();

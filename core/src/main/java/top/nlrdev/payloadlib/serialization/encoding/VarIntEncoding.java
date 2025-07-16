@@ -32,7 +32,10 @@ public final class VarIntEncoding {
     }
 
     public static void encode(ByteBuf buf, VarInt varInt) {
-        int value = varInt.intValue();
+        encode(buf, varInt.intValue());
+    }
+
+    public static void encode(ByteBuf buf, int value) {
         while (true) {
             if ((value & ~DATA_BITS_MASK) == 0) {
                 buf.writeByte(value);

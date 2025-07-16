@@ -32,7 +32,10 @@ public final class VarLongEncoding {
     }
 
     public static void encode(ByteBuf buf, VarLong varLong) {
-        long value = varLong.longValue();
+        encode(buf, varLong.longValue());
+    }
+
+    public static void encode(ByteBuf buf, long value) {
         while (true) {
             if ((value & ~DATA_BITS_MASK) == 0L) {
                 buf.writeByte((int) value);
